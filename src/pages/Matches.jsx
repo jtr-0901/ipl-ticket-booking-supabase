@@ -1,39 +1,50 @@
-function MatchCard(props) {
-  return (
-    <div className="match-card">
-      <h2>
-        {props.team1} vs {props.team2}
-      </h2>
-
-      <p>📍 {props.venue}</p>
-      <p>📅 {props.date}</p>
-
-      <button>Book Ticket</button>
-    </div>
-  );
-}
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { supabase } from "../supabase";
 
 function Matches() {
+  const [matches, setMatches] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch data on component load
+  useEffect(() => {
+    fetchMatches();
+  }, []);
+
+  async function fetchMatches() {
+    const { data, error } = await supabase
+      .from("matches")
+      .select("*");
+
+    if (error) {
+      console.log("Error fetching matches:", error);
+    } else {
+      setMatches(data);
+    }
+    setLoading(false);
+  }
+
+  if (loading) {
+    return <p>Loading matches...</p>;
+  }
+
   return (
-    <main className="matches-page">
+    <div className="matches-page">
       <h1>Upcoming IPL Matches</h1>
 
       <div className="matches-grid">
-        <MatchCard
-          team1="RCB"
-          team2="CSK"
-          venue="M. Chinnaswamy Stadium, Bengaluru"
-          date="25 March 2026"
-        />
-
-        <MatchCard
-          team1="MI"
-          team2="KKR"
-          venue="Wankhede Stadium, Mumbai"
-          date="28 March 2026"
-        />
+        {matches.map((match) => (
+          <div key={match.id} className="match-card">
+            <h2>{match.team1} vs {match.team2}</h2>
+            <p>📍 {match.venue}</p>
+            <p>📅 {match.date}</p>
+            <Link to="/booking">
+              <button>Book Ticket</button>
+            </Link>
+          </div>
+        ))}
       </div>
-    </main>
+    </div>
   );
 }
 
